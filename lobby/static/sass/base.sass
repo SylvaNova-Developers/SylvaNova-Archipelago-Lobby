@@ -1,10 +1,17 @@
+@import theme
+@import sylvanova
+
 *
   -moz-box-sizing: border-box
   box-sizing: border-box
 
 a
-  color: hsl(200, 25%, 70%)
+  color: $color-link
   text-decoration: none
+  transition: color 0.2s ease
+
+  &:hover
+    color: $color-link-hover
 
 
 a:focus, a:active
@@ -20,13 +27,13 @@ html
 body
   display: flex
   margin: 0
-  font-family: sans-serif
-  background-color: #2d5373 //hsl(200, 25%, 60%)
-  background-image: url("../images/background.png")
+  font-family: $font-body
+  background-color: $color-bg
   height: 100dvh
   width: 100%
-  color: white
+  color: $color-text
   overflow: hidden
+  -webkit-font-smoothing: antialiased
 
 
 hr
@@ -41,15 +48,17 @@ hr
 .styled
   width: 100%
   border-collapse: collapse
-  border: 1px solid hsla(0,0%,0%, 0.25)
-  background-color: hsla(0,0%,0%,0.1)
+  border: 1px solid $color-border
+  border-radius: $radius-md
+  background: $color-surface
+  backdrop-filter: $blur-surface
   margin: 15px 0
   word-break: break-word
+  overflow: hidden
 
   thead
-    background-color: hsla(0,0%,0%,0.25)
-    border: 1px solid hsla(0,0%,0%, 0.50)
-    box-shadow: inset 0 1px 0px hsla(0,0%,100%, 0.075)
+    background-color: rgba(106, 184, 114, 0.1)
+    border-bottom: 1px solid $color-border
   tr
     border-bottom: 1px solid hsla(0,0%,0%, 0.25)
     &:nth-child(2n)
@@ -63,7 +72,7 @@ hr
 
     &:hover
       background-color: hsla(0,0%,100%,0.030)
-      border-left: 1px solid hsl(200, 25%, 60%)
+      border-left: 1px solid $color-accent
 
   button
     width: 100%
@@ -154,7 +163,7 @@ form
     margin-bottom: 1em
 
     &:focus
-      box-shadow: 0 0 0.15em #6EADEF
+      box-shadow: $shadow-glow
 
   input[type=file]
     cursor: pointer
@@ -244,54 +253,62 @@ legend
   padding: 0 0.5em
   font-weight: bold
   font-variant: small-caps
-  background-color: hsl(0, 0%, 15%)
-  background-image: url("../images/background.png")
+  background-color: $color-surface-solid
+  border-radius: $radius-sm
 
 
 button, .button-emulator
   display: inline-block
-  font-family: sans-serif
-  font-weight: bold
-  font-size: 0.8em
-  border: none
-  background: hsla(0,0%,0%,0.2)
+  font-family: $font-body
+  font-weight: 600
+  font-size: 0.9375rem
+  border: 1px solid $color-border
+  border-radius: $radius-md
+  background: $color-surface
+  backdrop-filter: $blur-surface
   padding: 0.75em 1em
-  box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.75), inset 0 0 0 2px hsla(0,0%,100%,0.05)
-  color: white
+  box-shadow: $shadow-surface
+  color: $color-text
   cursor: pointer
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s
 
   &:hover
-    background-color: hsla(0,0%,0%,0.15)
-    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.75), inset 0 0 0 2px hsla(0,0%,100%,0.05),  0 0 0.15em #6EADEF
+    transform: translateY(-2px)
+    border-color: $color-border-strong
+    box-shadow: $shadow-surface, $shadow-glow
 
 
 .validation-button
-  background-color: hsl(130,70%,30%)
-  box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175)
-  text-shadow: 1px 1px hsla(0,0%,0%,0.35)
+  background-color: $color-accent
+  border-color: $color-border-strong
+  color: white
+  box-shadow: 0 4px 20px $color-accent-glow
+  text-shadow: none
   &:hover
-    background-color: hsl(130,80%,30%)
-    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175),  0 0 0.2em hsl(130,80%,30%)
+    background-color: $color-accent-bright
+    box-shadow: 0 6px 28px $color-accent-glow, $shadow-glow
 
 
 .cancel-button
   background-color: hsl(0,65%,45%)
-  box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175)
-  text-shadow: 1px 1px hsla(0,0%,0%,0.35)
+  border-color: rgba(248, 113, 113, 0.35)
+  box-shadow: 0 4px 20px rgba(248, 113, 113, 0.25)
+  text-shadow: none
   &:hover
     background-color: hsl(0,75%,45%)
-    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175),  0 0 0.2em hsl(0,75%,45%)
+    box-shadow: 0 6px 28px rgba(248, 113, 113, 0.35)
 
 
 select
-  color: white
-  border-radius: 2px
-  background: hsl(135, 0%, 28%)
-  box-shadow: 0 0 1px black, inset 0 1px 0px 0px hsla(0,0%,100%,0.15)
+  color: $color-text
+  border-radius: $radius-sm
+  background: $color-surface-solid
+  border: 1px solid $color-border
+  box-shadow: $shadow-surface
   cursor: pointer
-  font-weight: bold
+  font-weight: 600
   text-align: center
-  border: none
+  font-family: $font-body
 
   &:disabled
     opacity: 0.5
@@ -300,15 +317,15 @@ select
   margin-right: -10%
   margin-bottom: -0.75em
 
-  text-shadow: 0 0 0 white, 1px 1px black
+  text-shadow: none
   margin: -0.2em 0
   width: 100%
 
   option
-    background-color: hsl(220, 15%, 25%)
+    background-color: $color-surface-solid
 
     &:hover, &:focus, &:checked
-      background-color: hsl(200, 40%, 35%)
+      background-color: rgba(106, 184, 114, 0.2)
 
 
 label + select
@@ -336,19 +353,29 @@ option
   height: 100%
   overflow: hidden
   position: relative
+  background: $color-surface
+  backdrop-filter: $blur-heavy
+  border-right: 1px solid $color-border
+  box-shadow: $shadow-surface
 
   a
     display: flex
     font-size: 14px
-    padding: 4px
+    padding: 6px 8px
     width: 100%
-    font-weight: bold
+    font-weight: 600
     align-items: center
     word-break: break-word
+    border-radius: $radius-sm
+    margin: 1px 4px
+    width: calc(100% - 8px)
+    color: $color-text-muted
+    transition: background 0.2s, color 0.2s
 
     &.selected, &:hover
-      background-color: hsla(0, 0%, 0%, 0.30)
-      color: white
+      background-color: rgba(106, 184, 114, 0.12)
+      color: $color-text
+      border-color: $color-border
 
 
     .menu-indented
@@ -379,9 +406,9 @@ option
     &:after
       content: ""
       display: block
-      background-color: hsl(0, 0%, 15%)
-      height: 2px
-      margin: 8px
+      background-color: $color-border
+      height: 1px
+      margin: 8px 12px
 
   .source-code
     position: absolute
@@ -396,11 +423,11 @@ option
   flex: 1 1 auto
   min-width: 0
   height: 100%
-  border-left: 10px solid black
-  background-color: #12202c
-  background-image: url("../images/background.png")
-  box-shadow: 0 0 5px hsla(0, 0%, 0%, 0.5), inset 0 0 0 1px hsla(0,0%,100%,0.15)
-  text-shadow: 1px 1px hsla(0,0%,0%,0.25)
+  background: $color-surface-elevated
+  backdrop-filter: $blur-heavy
+  border-left: 1px solid $color-border
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.15)
+  text-shadow: none
   padding: 0 1em
   overflow: auto
 
@@ -417,107 +444,101 @@ option
 
 h1, h2, h3, h4, h5, h6
   margin: 0
+  font-family: $font-display
+  color: $color-text
 
 h1
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.3)*/
   font-size: 2em
 
 h2
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.25)*/
   font-size: 1.8em
 
 h3
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.2)*/
   font-size: 1.6em
 
 h4
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.15)*/
   font-size: 1.4em
 
 h5
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.1)*/
   font-size: 1.2em
 
 h6
-  /*border-bottom: 2px solid hsla(0,0%,0%, 0.05)*/
   font-size: 1em
 
 /* == MODULE MENU == */
 
 #module-menu
   list-style: none
-  box-shadow: 0 1px 0px 0px hsla(0,0%,100%,0.15)
-  background-color: black
+  box-shadow: none
+  border-bottom: 1px solid $color-border
+  background: transparent
   margin: 0 -1em
   margin-bottom: 1em
   padding: 0.5em 1.5em 0 0
   display: flex
+  gap: 0.25rem
 
   a
     display: inline-block
-    font-size: 0.925em
-    font-weight: bold
-    /*font-variant: small-caps*/
+    font-size: 0.8125rem
+    font-weight: 600
+    font-family: $font-body
     text-transform: uppercase
-    color: white
-    padding: 0.35em 1em
-    margin: 0 2px 0 0
-    background-color: #1c252c
-    background-image: url("../images/background.png")
-    box-shadow: inset 0 -1px 0px hsla(0,0%,0%,0.75)
-    border-top: 1px solid hsla(0,0%,100%,0.08)
-    border-bottom: none
-    border-left: 1px solid hsla(0,0%,100%,0.08)
-    border-right: 1px solid hsla(0,0%,100%,0.08)
-    color: hsl(0,0%,75%)
-    /*border-radius: 3px 3px 0 0*/
+    letter-spacing: 0.04em
+    color: $color-text-muted
+    padding: 0.5em 1em
+    margin: 0
+    background: transparent
+    border: 1px solid transparent
+    border-radius: $radius-md $radius-md 0 0
+    transition: background 0.2s, color 0.2s, border-color 0.2s
 
     &.selected, &.selected:hover
-      background-color: #12202c
-      box-shadow: 0 1px 0px 0 hsla(0,0%,0%, 0.35)
-      color: hsl(0,0%,95%)
-      border-top: 1px solid hsla(0,0%,100%,0.15)
-      border-bottom: none
-      border-left: 1px solid hsla(0,0%,100%,0.15)
-      border-right: 1px solid hsla(0,0%,100%,0.15)
+      background: rgba(106, 184, 114, 0.12)
+      border-color: $color-border
+      border-bottom-color: transparent
+      color: $color-text
 
     &:hover
-      color: hsl(0,0%,95%)
-      background-color: #202a33
+      color: $color-text
+      background: rgba(106, 184, 114, 0.08)
 
 
 .error
-  background-color: hsl(0, 90%, 20.0%) !important
-  background-image: url("../images/background.png")
+  background-color: rgba(248, 113, 113, 0.15) !important
+  border: 1px solid rgba(248, 113, 113, 0.35) !important
+  border-radius: $radius-md
+  backdrop-filter: $blur-surface
   padding: 0.5em
-  box-shadow: inset 0 0 0 1px hsla(0,0%,100%,0.2), 0 0 0 1px hsl(0,75%,20%)
   font-weight: bold !important
-  color: hsl(0,100%,95%) !important
-  text-shadow: 1px 1px black !important
+  color: #fca5a5 !important
+  text-shadow: none !important
   margin: 1em 0
-  font-family: sans-serif
+  font-family: $font-body
 
 .warning
-  background-color: hsl(30,95%,30%) !important
-  background-image: url("../images/background.png")
+  background-color: rgba(232, 168, 56, 0.15) !important
+  border: 1px solid rgba(232, 168, 56, 0.35) !important
+  border-radius: $radius-md
+  backdrop-filter: $blur-surface
   padding: 0.5em
-  box-shadow: inset 0 0 0 1px hsla(30,0%,100%,0.2), 0 0 0 1px hsl(3,75%,20%)
   font-weight: bold !important
-  color: hsl(0,100%,95%) !important
-  text-shadow: 1px 1px black !important
+  color: #fde68a !important
+  text-shadow: none !important
   margin: 1em 0
-  font-family: sans-serif
+  font-family: $font-body
 
 .confirm
-  background-color: hsl(125,90%,20%) !important
-  background-image: url("../images/background.png") !important
+  background-color: rgba(106, 184, 114, 0.15) !important
+  border: 1px solid $color-border-strong !important
+  border-radius: $radius-md
+  backdrop-filter: $blur-surface
   padding: 0.5em
-  box-shadow: inset 0 0 0 1px hsla(0,0%,100%,0.25), 0 0 0 1px hsl(125,50%,5%)
   font-weight: bold !important
-  color: hsl(125,100%,95%) !important
-  text-shadow: 1px 1px black
+  color: $color-accent-bright !important
+  text-shadow: none
   margin: 1em 0
-  font-family: sans-serif
+  font-family: $font-body
 
 
 @media screen and (max-width:768px)
@@ -527,6 +548,10 @@ h6
     max-width: 3em
     min-width: 3em
     flex: 0 0 3em
+
+  .brand-wordmark, .brand-tagline
+    display: none
+
   #navigation span
     display: none
 
@@ -585,8 +610,11 @@ h6
       opacity: 1
 
 .popup
-  background-color: #272822
-  color: #fff
+  background-color: $color-surface-solid
+  border: 1px solid $color-border
+  backdrop-filter: $blur-heavy
+  border-radius: $radius-lg
+  color: $color-text
   display: flex
   flex-direction: column
   min-width: 50%
@@ -631,7 +659,7 @@ h6
       background: none
       border: none
       box-shadow: none
-      color: hsl(200, 25%, 70%)
+      color: $color-link
       cursor: pointer
       padding: 0
       font-size: inherit
@@ -652,8 +680,11 @@ h6
       margin-left: 0.5em
 
 .delete-popup
-  background-color: #272822
-  color: #fff
+  background-color: $color-surface-solid
+  border: 1px solid $color-border
+  backdrop-filter: $blur-heavy
+  border-radius: $radius-lg
+  color: $color-text
   display: flex
   flex-direction: column
   min-width: 20%
@@ -677,7 +708,7 @@ h6
     margin: 1em auto auto auto
 
 dialog::backdrop
-  background-color: hsl(0, 0%, 0%, 0.45)
+  background-color: hsla(0, 0%, 0%, 0.45)
 
 // https://github.com/whatwg/html/issues/7732
 body:has(dialog[open])
@@ -733,7 +764,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
     margin-left: 0.2em
 
 .yaml-edited-indicator
-  color: #6cf
+  color: $color-accent-bright
   margin-left: auto
   font-size: 0.85em
   align-self: center
@@ -806,7 +837,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
 
   &:hover
     background-color: hsla(0,0%,0%,0.15)
-    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.75), inset 0 0 0 2px hsla(0,0%,100%,0.05),  0 0 0.15em #6EADEF
+    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.75), inset 0 0 0 2px hsla(0,0%,100%,0.05), $shadow-glow
 
 .multiselect-green
   .multiselect-picker
@@ -814,18 +845,18 @@ td:hover span[title]::after, .show-discord-names span[title]::after
   a
     color: white
 
-  background-color: hsl(130, 70%, 30%)
-  font-weight: bold
-  font-family: sans-serif
+  background-color: $color-accent
+  font-weight: 600
+  font-family: $font-body
   font-size: 0.8em
   padding: 0.5em 0 0.5em 0.5em
-  background-color: hsl(130,70%,30%)
-  box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175)
-  text-shadow: 1px 1px hsla(0,0%,0%,0.35)
+  border: 1px solid $color-border-strong
+  box-shadow: 0 4px 20px $color-accent-glow
+  text-shadow: none
 
   &:hover
-    background-color: hsl(130,80%,30%)
-    box-shadow: 0 0 0 1px hsla(0,0%,100%,0.05), inset 0 0 0 1px hsla(0,0%,0%,0.9), inset 0 0 0 2px hsla(0,0%,100%,0.175),  0 0 0.2em hsl(130,80%,30%)
+    background-color: $color-accent-bright
+    box-shadow: 0 6px 28px $color-accent-glow
 
 
 .multiselect-picker
@@ -867,12 +898,15 @@ td:hover span[title]::after, .show-discord-names span[title]::after
   white-space: nowrap
   padding: 0
   margin-top: 2px
+  border-radius: $radius-md
+  border: 1px solid $color-border
 
-  color: white
-  background: hsl(135, 0%, 31%)
-  box-shadow: 0 0 1px black, inset 0 1px 0px 0px hsla(0,0%,100%,0.15)
+  color: $color-text
+  background: $color-surface-solid
+  backdrop-filter: $blur-heavy
+  box-shadow: $shadow-surface
   cursor: pointer
-  font-weight: bold
+  font-weight: 600
   text-align: center
 
 .context-menu li
@@ -882,7 +916,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
   user-select: none
 
   &:hover
-    background: hsl(135, 0%, 24%)
+    background: rgba(106, 184, 114, 0.15)
 
 #room-form
   display: flex
@@ -1126,7 +1160,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
       background-color: hsla(0, 0%, 0%, 0.3)
 
       option:checked
-        background: hsl(200, 40%, 35%) linear-gradient(hsl(200, 40%, 35%), hsl(200, 40%, 35%))
+        background: rgba(106, 184, 114, 0.35) linear-gradient(rgba(106, 184, 114, 0.35), rgba(106, 184, 114, 0.35))
 
       option
         background-color: hsla(0, 0%, 0%, 0)
@@ -1236,7 +1270,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
 
       &.active
         background: hsla(200, 60%, 40%, 0.7)
-        color: hsl(200, 80%, 90%)
+        color: $color-accent-bright
 
     .option-weighted
       grid-column: 5
@@ -1332,7 +1366,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
       display: inline-flex
       align-items: center
       gap: 0.5em
-      background-color: hsla(200, 50%, 40%, 0.3)
+      background-color: rgba(106, 184, 114, 0.2)
       padding: 0.25em 0.5em
       border-radius: 3px
 
@@ -1370,12 +1404,12 @@ form:has(#apworld)
     text-align-last: left
 
 #yaml-warnings
-  background-color: hsl(30, 95%, 30%)
-  background-image: url("../images/background.png")
+  background-color: rgba(232, 168, 56, 0.15)
+  border: 1px solid rgba(232, 168, 56, 0.35)
   padding: 1em
   margin: 1em 0
-  border-radius: 4px
-  box-shadow: inset 0 0 0 1px hsla(30, 0%, 100%, 0.2), 0 0 0 1px hsl(3, 75%, 20%)
+  border-radius: $radius-md
+  backdrop-filter: $blur-surface
 
   ul
     margin: 0.5em 0 0 1.5em
@@ -1406,19 +1440,20 @@ form:has(#apworld)
     display: none
 
 .modal-content
-  background-color: hsl(200, 30%, 25%)
-  background-image: url("../images/background.png")
-  border-radius: 8px
+  background-color: $color-surface-solid
+  border: 1px solid $color-border
+  border-radius: $radius-lg
+  backdrop-filter: $blur-heavy
   padding: 1.5em
   min-width: 300px
   max-width: 500px
   max-height: 80vh
   overflow-y: auto
-  box-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.5)
+  box-shadow: $shadow-surface
 
   h3
     margin: 0 0 1em 0
-    color: hsl(200, 80%, 90%)
+    color: $color-text
 
 .weight-add-row
   display: flex
@@ -1440,14 +1475,14 @@ form:has(#apworld)
 
   button
     padding: 0.4em 1em
-    background: hsl(200, 60%, 40%)
-    border: none
-    border-radius: 4px
+    background: $color-accent
+    border: 1px solid $color-border-strong
+    border-radius: $radius-sm
     color: white
     cursor: pointer
 
     &:hover
-      background: hsl(200, 60%, 50%)
+      background: $color-accent-bright
 
 .weight-item
   display: flex
@@ -1497,17 +1532,18 @@ form:has(#apworld)
     cursor: pointer
 
     &:first-child
-      background: hsl(200, 60%, 40%)
+      background: $color-accent
       color: white
-      border: none
+      border: 1px solid $color-border-strong
 
       &:hover
-        background: hsl(200, 60%, 50%)
+        background: $color-accent-bright
 
     &:last-child
       background: transparent
-      border: 1px solid hsla(0, 0%, 100%, 0.3)
-      color: inherit
+      border: 1px solid $color-border
+      color: $color-text-muted
 
       &:hover
-        background: hsla(0, 0%, 100%, 0.1)
+        background: rgba(106, 184, 114, 0.08)
+        color: $color-text

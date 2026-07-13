@@ -1,48 +1,51 @@
+@import theme
+
 .help-validation-result
   vertical-align: middle
   display: inline-block
   margin-right: 4px
 
 .help-section
-  background: hsla(0,0%,0%,0.25)
-  border: 1px solid hsla(0,0%,100%,0.08)
-  border-radius: 2px
+  background: $color-surface
+  border: 1px solid $color-border
+  border-radius: $radius-lg
+  backdrop-filter: $blur-heavy
   padding: 1.5em 2em
   margin-bottom: 1.5em
-  box-shadow: 0 2px 4px hsla(0,0%,0%,0.2)
+  box-shadow: $shadow-surface
 
   h2
-    border-bottom: 2px solid hsl(200, 50%, 45%)
+    border-bottom: 2px solid $color-accent
     display: flex
     align-items: center
     gap: 0.5em
 
     i
-      color: hsl(200, 60%, 60%)
+      color: $color-accent-bright
 
   h3
-    color: hsl(200, 50%, 75%)
+    color: $color-text
     font-size: 1.2em
 
   h4
-    color: hsl(200, 30%, 70%)
+    color: $color-text-muted
 
   .styled
     td:first-child
       width: 30%
       font-weight: bold
-      color: hsl(200, 40%, 80%)
+      color: $color-link
 
 .quick-start
-  background: hsla(200,50%,20%,0.4)
-  border: 1px solid hsl(200, 50%, 40%)
-  border-radius: 2px
+  background: rgba(106, 184, 114, 0.1)
+  border: 1px solid $color-border
+  border-radius: $radius-md
   padding: 1.5em
   margin: 1.5em 0
 
   h3
     margin: 0 0 1em 0 !important
-    color: hsl(200, 70%, 80%)
+    color: $color-accent-bright
     font-size: 1.1em
     text-transform: uppercase
     letter-spacing: 0.05em
@@ -55,8 +58,9 @@
 .quick-step
   flex: 1
   min-width: 150px
-  background: hsla(0,0%,0%,0.3)
-  border-radius: 2px
+  background: rgba(0, 0, 0, 0.2)
+  border: 1px solid $color-border
+  border-radius: $radius-md
   padding: 1em
   text-align: center
 
@@ -66,10 +70,11 @@
   justify-content: center
   width: 2em
   height: 2em
-  background: hsl(200, 50%, 45%)
+  background: $color-accent
   border-radius: 50%
   font-weight: bold
   font-size: 1.1em
+  color: white
 
 .quick-step-text
   font-size: 0.95em
@@ -83,28 +88,31 @@
   padding: 0
 
   li
-    background: hsla(0,0%,0%,0.3)
-    border-radius: 2px
-    border-left: 3px solid hsl(200, 50%, 50%)
+    background: rgba(0, 0, 0, 0.2)
+    border-radius: $radius-md
+    border-left: 3px solid $color-accent
+    border: 1px solid $color-border
+    transition: background 0.2s
 
     &:hover
-      background: hsla(200,50%,50%,0.2)
+      background: rgba(106, 184, 114, 0.12)
 
   a
     display: flex
     align-items: center
     gap: 0.5em
     padding: 0.75em 1em
-    font-weight: bold
+    font-weight: 600
 
   i
-    color: hsl(200, 50%, 65%)
+    color: $color-accent
     width: 1.2em
     text-align: center
 
 .info-box
-  background: hsla(200, 50%, 30%, 0.3)
-  border-left: 4px solid hsl(200, 60%, 55%)
+  background: rgba(106, 184, 114, 0.1)
+  border-left: 4px solid $color-accent
+  border-radius: 0 $radius-md $radius-md 0
   padding: 1em 1.25em
   margin: 1em 0
   display: flex
@@ -112,7 +120,7 @@
   align-items: flex-start
 
   i
-    color: hsl(200, 70%, 70%)
+    color: $color-accent-bright
     font-size: 1.2em
     margin-top: 0.1em
 
@@ -120,9 +128,9 @@
     margin: 0
 
 .tip-box
-  background: hsla(45, 60%, 30%, 0.3)
-  border-left: 4px solid hsl(45, 70%, 55%)
-  border-radius: 0 6px 6px 0
+  background: rgba(232, 168, 56, 0.1)
+  border-left: 4px solid #e8a838
+  border-radius: 0 $radius-md $radius-md 0
   padding: 1em 1.25em
   margin: 1em 0
   display: flex
@@ -130,7 +138,7 @@
   align-items: flex-start
 
   i
-    color: hsl(45, 80%, 65%)
+    color: #e8a838
     font-size: 1.2em
     margin-top: 0.1em
 
@@ -147,8 +155,9 @@
     counter-increment: step-counter
     margin-bottom: 0.5em
     padding: 0.75em 1em 0.75em 3.5em
-    background: hsla(0,0%,0%,0.2)
-    border-radius: 2px
+    background: rgba(0, 0, 0, 0.2)
+    border: 1px solid $color-border
+    border-radius: $radius-md
     position: relative
 
     &::before
@@ -162,9 +171,10 @@
       justify-content: center
       width: 1.8em
       height: 1.8em
-      background: hsl(200, 50%, 45%)
+      background: $color-accent
       border-radius: 50%
       font-weight: bold
+      color: white
 
 .styled-list
   list-style: none
@@ -179,10 +189,10 @@
       content: "•"
       position: absolute
       left: 0
-      color: hsl(200, 50%, 60%)
+      color: $color-accent
 
 .faq-item
-  border-bottom: 1px solid hsla(0,0%,100%,0.1)
+  border-bottom: 1px solid $color-border
 
   &:last-child
     border-bottom: none
@@ -190,8 +200,8 @@
   summary
     padding: 0.75em 0
     cursor: pointer
-    font-weight: bold
-    color: hsl(200, 50%, 80%)
+    font-weight: 600
+    color: $color-text
     display: flex
     align-items: center
     gap: 0.5em
@@ -205,25 +215,26 @@
       font-family: "Font Awesome 6 Free"
       font-weight: 900
       font-size: 0.7em
-      color: hsl(200, 50%, 60%)
+      color: $color-accent
       width: 1em
 
     &:hover
-      color: hsl(200, 60%, 90%)
+      color: $color-accent-bright
 
   &[open] summary::before
     transform: rotate(90deg)
 
   .faq-content
     padding: 0 0 0.75em 1.5em
-    color: hsl(0, 0%, 80%)
+    color: $color-text-muted
 
     p
       margin: 0 0 0.5em 0
 
 .help-intro
   font-size: 1.1em
-  color: hsl(0, 0%, 85%)
+  color: $color-text-muted
+  line-height: 1.6
 
 .two-col
   display: grid
@@ -231,20 +242,22 @@
   gap: 1em
 
   > div
-    background: hsla(0,0%,0%,0.15)
-    border-radius: 2px
+    background: rgba(0, 0, 0, 0.15)
+    border: 1px solid $color-border
+    border-radius: $radius-md
     padding: 1em
 
   h4
     margin-top: 0
-    color: hsl(200, 50%, 75%)
-    border-bottom: 1px solid hsla(200, 50%, 50%, 0.3)
+    color: $color-text
+    border-bottom: 1px solid $color-border
     padding-bottom: 0.5em
 
 .yaml-dropzone
-  border: 2px dashed hsla(200, 50%, 50%, 0.5)
+  border: 2px dashed $color-border-strong
+  border-radius: $radius-md
   transition: border-color 0.2s, background-color 0.2s
 
   &.drag-over
-    border-color: hsl(200, 60%, 60%)
-    background-color: hsla(200, 50%, 50%, 0.15)
+    border-color: $color-accent
+    background-color: rgba(106, 184, 114, 0.12)

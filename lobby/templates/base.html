@@ -1,9 +1,12 @@
 {% import "menu.html.tera" as menu %}
 
 <!DOCTYPE html >
-<html lang="en">
+<html lang="en" data-theme="dark">
     <head>
-        <title>{% block title %}Archipelago lobby{% endblock title %}</title>
+        <title>{% block title %}SylvaNova Lobby{% endblock title %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/static/css/base.css?{{ base.css_version }}">
         <link rel="stylesheet" href="/static/contrib/font-awesome/css/all.min.css">
         <meta charset="UTF-8">
@@ -14,7 +17,18 @@
         {% endblock styles %}
     </head>
     <body>
+        <div id="scene-background" aria-hidden="true">
+            <div class="scene-landscape">
+                <img src="/static/images/landscape.svg" alt="" width="100%" height="100%" style="object-fit: cover; object-position: bottom;">
+            </div>
+        </div>
+
         <nav id="navigation">
+            <a href="/" class="brand-wordmark">
+                <span class="brand-sylva">Sylva</span><span class="brand-nova">Nova</span>
+            </a>
+            <span class="brand-tagline">A forest is growing. Something new takes root.</span>
+
             {% call menu::app_menu_item("Index", "fa-brands fa-buffer", "/", "index", base.cur_module) %}{% endcall %}
             {% block room_navigation %}
             {% endblock %}
@@ -61,10 +75,15 @@
                 {% block main %}{% endblock main %}
             </main>
         </div>
+
+        <footer class="site-footer" aria-hidden="true">
+            <p class="site-footer-line"><span class="site-footer-company">SylvaNova LLC</span> · Gaming community</p>
+            <p class="site-footer-line">© 2026 SylvaNova LLC</p>
+        </footer>
+
         <script src="/static/js/time.js?{{ base.js_version}}" defer></script>
         {% block scripts %}
         {% endblock scripts %}
     </body>
 </html>
-
 
