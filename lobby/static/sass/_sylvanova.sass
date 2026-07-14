@@ -1,0 +1,96 @@
+@import theme
+
+// Immersive forest scene background (adapted from sylvanova-website)
+
+#scene-background
+  position: fixed
+  inset: 0
+  z-index: -1
+  overflow: hidden
+  pointer-events: none
+  background: linear-gradient(180deg, $sky-night-top 0%, $sky-night-mid 45%, $sky-night-bottom 100%)
+
+  &::after
+    content: ""
+    position: absolute
+    inset: 0
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.45) 100%)
+    z-index: 2
+
+.scene-landscape
+  position: absolute
+  bottom: 0
+  left: 0
+  right: 0
+  height: 65%
+  z-index: 1
+
+  svg
+    width: 100%
+    height: 100%
+
+    path, rect, ellipse
+      transition: fill 2s ease
+
+// Brand wordmark in sidebar
+
+.brand-wordmark
+  display: block
+  padding: 1rem 0.75rem 0.5rem
+  text-align: center
+  text-decoration: none
+  font-family: $font-display
+  font-size: 1.75rem
+  font-weight: 700
+  line-height: 1
+  letter-spacing: -0.02em
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65)
+
+  .brand-sylva
+    color: $color-text
+
+  .brand-nova
+    color: $color-accent
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65), 0 0 20px $color-accent-glow
+
+  &:hover
+    .brand-sylva
+      color: $color-text
+
+    .brand-nova
+      color: $color-accent-bright
+
+.brand-tagline
+  display: block
+  padding: 0 0.75rem 0.75rem
+  text-align: center
+  font-family: $font-display
+  font-size: 0.75rem
+  font-style: italic
+  color: $color-text-muted
+  line-height: 1.3
+  opacity: 0.85
+
+// Site footer
+
+.site-footer
+  position: fixed
+  bottom: 0.5rem
+  left: 50%
+  z-index: 1
+  transform: translateX(-50%)
+  max-width: calc(100vw - 9rem)
+  text-align: center
+  pointer-events: none
+  user-select: none
+
+.site-footer-line
+  font-size: 0.625rem
+  line-height: 1.45
+  letter-spacing: 0.01em
+  color: $color-text-muted
+  opacity: 0.42
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85)
+
+.site-footer-company
+  font-weight: 500

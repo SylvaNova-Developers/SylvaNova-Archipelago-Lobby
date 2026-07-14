@@ -1,0 +1,9 @@
+<svg viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M-200,380 L0,380 L200,280 L400,340 L600,220 L800,300 L1000,250 L1200,320 L1400,300 L1400,520 L-200,520 Z" fill="#3d5c32" opacity="0.4"/>
+  <path d="M-200,420 L0,420 L300,350 L500,380 L700,310 L900,360 L1200,340 L1400,360 L1400,520 L-200,520 Z" fill="#3d5c32" opacity="0.6"/>
+  <rect x="-200" y="420" width="1600" height="130" fill="#3d5c32"/>
+  <ellipse cx="600" cy="470" rx="700" ry="40" fill="rgba(74, 158, 92, 0.2)"/>
+  <ellipse cx="200" cy="475" rx="80" ry="15" fill="#2d6b3f" opacity="0.3"/>
+  <ellipse cx="600" cy="478" rx="120" ry="18" fill="#4a9e5c" opacity="0.25"/>
+  <ellipse cx="950" cy="476" rx="90" ry="14" fill="#2d6b3f" opacity="0.3"/>
+</svg>
