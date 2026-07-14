@@ -30,13 +30,10 @@
   padding: 1rem 0.75rem 0.75rem;
   text-align: center;
   text-decoration: none;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: #e8f0e8; }
+  font-size: 1.75rem;
+  line-height: 1; }
   .brand-title:hover {
-    color: #7ed487; }
+    opacity: 0.85; }
 
 .site-footer {
   position: fixed;
