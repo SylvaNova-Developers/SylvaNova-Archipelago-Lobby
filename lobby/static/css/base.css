@@ -25,37 +25,18 @@
     .scene-landscape svg path, .scene-landscape svg rect, .scene-landscape svg ellipse {
       transition: fill 2s ease; }
 
-.brand-wordmark {
+.brand-title {
   display: block;
-  padding: 1rem 0.75rem 0.5rem;
+  padding: 1rem 0.75rem 0.75rem;
   text-align: center;
   text-decoration: none;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65); }
-  .brand-wordmark .brand-sylva {
-    color: #e8f0e8; }
-  .brand-wordmark .brand-nova {
-    color: #6ab872;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65), 0 0 20px rgba(106, 184, 114, 0.4); }
-  .brand-wordmark:hover .brand-sylva {
-    color: #e8f0e8; }
-  .brand-wordmark:hover .brand-nova {
-    color: #7ed487; }
-
-.brand-tagline {
-  display: block;
-  padding: 0 0.75rem 0.75rem;
-  text-align: center;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 0.75rem;
-  font-style: italic;
-  color: #a8b8a8;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
   line-height: 1.3;
-  opacity: 0.85; }
+  color: #e8f0e8; }
+  .brand-title:hover {
+    color: #7ed487; }
 
 .site-footer {
   position: fixed;
@@ -551,7 +532,7 @@ h6 {
     max-width: 3em;
     min-width: 3em;
     flex: 0 0 3em; }
-  .brand-wordmark, .brand-tagline {
+  .brand-title {
     display: none; }
   #navigation span {
     display: none; } }
