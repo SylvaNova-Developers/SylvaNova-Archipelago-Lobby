@@ -237,7 +237,7 @@ impl World {
                 Ok(url)
             }
             WorldOrigin::Local(_) => Ok("".into()),
-            WorldOrigin::Supported => Ok("https://archipelago.gg/games".into()),
+            WorldOrigin::Supported => Ok("https://ovapelago.sylvanova.gg/games".into()),
         }
     }
 

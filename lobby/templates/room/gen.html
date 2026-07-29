@@ -40,7 +40,7 @@
         {% endif %}
     </a>
     <a href="/room/{{ self.room.id }}/generation/output" style="display: none" class="button-emulator validation-button" id="gen-output-button">Download generation output</a>
-    <p style="display: none; margin-top: 1em" id="ap-upload-hint">Next step: <a href="https://archipelago.gg/uploads" target="_blank">Upload to Archipelago.gg</a></p>
+    <p style="display: none; margin-top: 1em" id="ap-upload-hint">Next step: <a href="https://ovapelago.sylvanova.gg/uploads" target="_blank">Upload to ovapelago.sylvanova.gg</a></p>
 {% else %}
     {% let is_ok_for_gen = self.generation_checklist.values().min().copied().unwrap_or_default() %}
 

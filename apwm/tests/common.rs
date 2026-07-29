@@ -50,7 +50,7 @@ pub fn create_test_index(worlds: Vec<(&str, VersionReq, Vec<(&str, WorldOrigin)>
             .parse()
             .unwrap(),
         archipelago_version,
-        index_homepage: "https://archipelago.gg".to_string(),
+        index_homepage: "https://ovapelago.sylvanova.gg".to_string(),
         index_dir: PathBuf::from("index"),
         worlds: world_map,
     }
