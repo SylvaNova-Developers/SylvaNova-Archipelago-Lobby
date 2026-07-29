@@ -18,6 +18,9 @@ The sibling repo `SylvaNova-archipelago-index` is the apworld **data/index** the
 The workspace needs a Rust toolchain that supports **edition 2024** (Rust ≥ 1.85); the image's
 default `1.83` fails with `feature edition2024 is required`. `rustup default stable` is set during
 setup — verify with `rustc --version` and re-run `rustup default stable` if you get that error.
+`.cargo/config.toml` forces the **`mold`** linker (`-fuse-ld=mold`); it's installed in the
+environment. If a build ever fails with `collect2: cannot find 'ld'`, `mold` is missing
+(`sudo apt-get install -y mold`).
 
 ### Running services (no systemd in this container)
 Postgres and Valkey are installed but must be started manually each session:
@@ -39,7 +42,7 @@ VALKEY_URL=redis://127.0.0.1:6379?protocol=resp3
 ADMIN_TOKEN=changeme
 ROCKET_SECRET_KEY=<44/88 base64 or 64 hex chars>   # required to keep sessions stable
 GENERATION_OUTPUT_DIR=/tmp/gen-output
-APWORLDS_INDEX_REPO_URL=/agent/repos/SylvaNova-archipelago-index   # local clone; avoids network
+APWORLDS_INDEX_REPO_URL=/home/ubuntu/repos/Archipelago-index   # local clone; avoids network
 APWORLDS_INDEX_REPO_BRANCH=main
 APWORLDS_INDEX_DIR=/tmp/apworlds_index
 APWORLDS_PATH=/tmp/apworlds_index/worlds
