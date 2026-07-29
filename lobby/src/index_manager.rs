@@ -14,6 +14,8 @@ use git2::{Repository, ResetType};
 
 use crate::utils::ZipFile;
 
+use apwm::utils::disable_git_owner_validation;
+
 pub struct IndexManager {
     pub index: RwLock<Index>,
     index_path: PathBuf,
@@ -130,6 +132,8 @@ impl IndexManager {
 }
 
 fn clone_or_update(repo_url: &str, repo_branch: &str, path: &Path) -> Result<()> {
+    disable_git_owner_validation();
+
     let repo = Repository::init(path)?;
 
     let mut remote = repo
