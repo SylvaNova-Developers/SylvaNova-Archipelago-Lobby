@@ -49,9 +49,11 @@ Generate strong random values for each row. `openssl rand -hex 32` or `openssl r
 | Variable | Purpose |
 |---|---|
 | `VALKEY_URL` | Connection string for valkey/redis. |
-| `APWORLDS_INDEX_REPO_URL` | Your fork of the apworld index repo. |
-| `APWORLDS_INDEX_REPO_BRANCH` | Branch to track on the index repo. |
+| `APWORLDS_INDEX_REPO_URL` | Apworld index git URL. Production should use `https://github.com/chouticly/SylvaNova-archipelago-index.git` (the compose example default). |
+| `APWORLDS_INDEX_REPO_BRANCH` | Branch to track on the index repo (usually `main`). |
 | `GENERATION_OUTPUT_DIR` | Path inside the lobby container where generated worlds are written. |
+
+After the index merges new worlds, either restart the lobby or call admin `GET /worlds/refresh` with `X-Api-Key: $ADMIN_TOKEN`. The index repo's post-merge CI will call that endpoint automatically once `LOBBY_REFRESH_URL` and `LOBBY_ADMIN_TOKEN` are configured there.
 
 ## Optional
 
