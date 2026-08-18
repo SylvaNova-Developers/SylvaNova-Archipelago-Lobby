@@ -8,6 +8,7 @@
 {% block main %}
 
 {% if room_templates.len() != 0 %}
+    <div class="table-scroll">
     <table class="styled" id="templates-table">
         <thead>
             <tr>
@@ -32,6 +33,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 {% else %}
 You don't have any room template at the moment.
 {% endif %}

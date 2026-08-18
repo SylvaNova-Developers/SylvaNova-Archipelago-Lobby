@@ -1,11 +1,16 @@
 const timeElements = document.getElementsByClassName("time");
+const isNarrowViewport = window.matchMedia("(max-width: 768px)").matches;
 
 for (const timeEl of timeElements) {
     const isLongTime = timeEl.classList.contains("long-time");
     const enableDiscordCopy = timeEl.classList.contains("discord");
     var format;
     if (isLongTime) {
-        format = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'longGeneric'}
+        if (isNarrowViewport) {
+            format = {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'}
+        } else {
+            format = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'longGeneric'}
+        }
     }
 
     if (!format) {
