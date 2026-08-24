@@ -55,7 +55,7 @@ Then `cargo run --bin ap-lobby`. Health check: `curl http://127.0.0.1:8000/healt
 it offline and fast.
 
 Production deployments should set `APWORLDS_INDEX_REPO_URL` to
-`https://github.com/chouticly/SylvaNova-archipelago-index.git` (see
+`https://github.com/SylvaNova-Developers/SylvaNova-Archipelago-Index.git` (see
 `docker-compose.yml.example`). The lobby does not poll the index; after merges,
 call `GET /worlds/refresh` with `X-Api-Key: $ADMIN_TOKEN`, or rely on the index
 repo's post-merge workflow once `LOBBY_REFRESH_URL` / `LOBBY_ADMIN_TOKEN` secrets
