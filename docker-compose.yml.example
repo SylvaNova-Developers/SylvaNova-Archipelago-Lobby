@@ -50,7 +50,7 @@ services:
       VALKEY_URL: redis://valkey:6379?protocol=resp3
       APWORLDS_INDEX_DIR: /builds/apworlds_index
       APWORLDS_PATH: /builds/apworlds_index/worlds
-      APWORLDS_INDEX_REPO_URL: https://github.com/chouticly/SylvaNova-archipelago-index.git
+      APWORLDS_INDEX_REPO_URL: https://github.com/SylvaNova-Developers/SylvaNova-Archipelago-Index.git
       RUST_LOG: debug
       YAML_VALIDATION_QUEUE_TOKEN: changeme
       GENERATION_QUEUE_TOKEN: changeme
