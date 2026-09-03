@@ -907,6 +907,8 @@ td:hover span[title]::after, .show-discord-names span[title]::after {
   margin-right: 0.3em; }
 
 #filter-popup {
+  position: absolute;
+  z-index: 1000;
   padding: 0.3em;
   background: #303c45;
   box-shadow: 0 0 1px black, inset 0 1px 0px 0px rgba(255, 255, 255, 0.15); }
