@@ -188,12 +188,13 @@ impl OptionsTpl<'_> {
 }
 
 /// Helper to fetch OptionsDef, using cache if available or queuing a job if not.
-#[tracing::instrument(skip(options_gen_queue, options_cache))]
+#[tracing::instrument(skip(options_gen_queue, options_cache, index_manager))]
 pub(crate) async fn get_options_def(
     apworld_name: &str,
     version: &Version,
     options_gen_queue: &State<OptionsGenQueue>,
     options_cache: &State<OptionsCache>,
+    index_manager: &State<IndexManager>,
 ) -> Result<OptionsDef> {
     let cache_key = (apworld_name.to_string(), version.clone());
 
@@ -203,6 +204,13 @@ pub(crate) async fn get_options_def(
             return Ok(cached_options.clone());
         }
     }
+
+    // Workers load apworlds from the shared APWORLDS_PATH. Make sure the file is
+    // present before enqueueing — index updates can list a world even when a prior
+    // download was skipped.
+    index_manager
+        .ensure_apworld(apworld_name, version)
+        .await?;
 
     let mut params = OptionsGenParams {
         apworld: (apworld_name.to_string(), version.clone()),
@@ -234,8 +242,16 @@ pub(crate) async fn get_options_def(
         ))?
     }
     if matches!(status, JobStatus::Failure) {
-        tracing::error!(%job_id, %apworld_name, %version, "Options gen job failed");
-        Err(anyhow!("Generating option definitions failed, try again."))?
+        let detail = options_gen_queue
+            .get_job_result(job_id)
+            .await
+            .ok()
+            .flatten()
+            .and_then(|response| response.error)
+            .filter(|message| !message.is_empty())
+            .unwrap_or_else(|| "try again.".to_string());
+        tracing::error!(%job_id, %apworld_name, %version, %detail, "Options gen job failed");
+        Err(anyhow!("Generating option definitions failed: {detail}"))?
     }
 
     // The queue callback handles caching on success
@@ -348,6 +364,7 @@ async fn options_gen_api<'a>(
         &parsed_version,
         options_gen_queue,
         options_cache,
+        index_manager,
     )
     .await?;
 
@@ -603,6 +620,7 @@ async fn edit_yaml<'a>(
         &latest_version,
         options_gen_queue,
         options_cache,
+        index_manager,
     )
     .await?;
 
@@ -719,6 +737,7 @@ async fn download_yaml<'a>(
         &parsed_version,
         options_gen_queue,
         options_cache,
+        index_manager,
     )
     .await?;
 

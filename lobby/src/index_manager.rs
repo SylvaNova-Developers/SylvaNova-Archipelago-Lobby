@@ -69,6 +69,58 @@ impl IndexManager {
         Ok(())
     }
 
+    /// Ensure the given apworld version exists on disk, downloading it if needed.
+    ///
+    /// The options-gen / yaml-validation workers load apworlds from `APWORLDS_PATH`.
+    /// Worlds can appear in the index even when a previous download was skipped, so
+    /// callers that need the file should use this before enqueueing worker jobs.
+    pub async fn ensure_apworld(&self, apworld_name: &str, version: &Version) -> Result<()> {
+        let apworld_path = self
+            .apworlds_path
+            .join(format!("{apworld_name}-{version}.apworld"));
+        if apworld_path.is_file() {
+            return Ok(());
+        }
+
+        tracing::info!(
+            %apworld_name,
+            %version,
+            path = %apworld_path.display(),
+            "Apworld missing locally, downloading on demand"
+        );
+
+        {
+            let index = self.index.read().await;
+            let world = index.worlds.get(apworld_name).with_context(|| {
+                format!("Unknown apworld '{apworld_name}' while ensuring local file")
+            })?;
+            if world
+                .get_version(version)
+                .is_some_and(|origin| origin.is_supported())
+            {
+                // Supported worlds ship inside the worker image; nothing to download.
+                return Ok(());
+            }
+
+            index
+                .refresh_into(
+                    &self.apworlds_path,
+                    false,
+                    Some((apworld_name.to_string(), version.clone())),
+                )
+                .await?;
+        }
+
+        if !apworld_path.is_file() {
+            bail!(
+                "Apworld {apworld_name} {version} is in the index but could not be downloaded. \
+                 Check the index URL and lobby logs, then retry."
+            );
+        }
+
+        Ok(())
+    }
+
     fn parse_index(&self) -> Result<Index> {
         let index_file = self.index_path.join("index.toml");
         let index = apwm::Index::new(&index_file)?;
