@@ -29,6 +29,10 @@ from worlds.AutoWorld import AutoWorldRegister  # noqa: E402
 from worlds.Files import APWorldContainer, InvalidDataError  # noqa: E402
 from Utils import tuplize_version, init_logging  # noqa: E402
 import worlds  # noqa: E402
+import settings  # noqa: E402
+
+# Headless workers must never open a file browser for required UserFolderPath settings.
+settings.no_gui = True
 
 
 # Some **supported** apworlds try to get stuff from external APIs. We do not want that as it currently times out in prod

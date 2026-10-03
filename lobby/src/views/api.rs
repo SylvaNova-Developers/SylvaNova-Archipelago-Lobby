@@ -378,10 +378,15 @@ pub(crate) async fn game_options(
             })?
     };
 
-    let options =
-        super::options_gen::get_options_def(apworld, &version, options_gen_queue, options_cache)
-            .await
-            .status(Status::InternalServerError)?;
+    let options = super::options_gen::get_options_def(
+        apworld,
+        &version,
+        options_gen_queue,
+        options_cache,
+        index_manager,
+    )
+    .await
+    .status(Status::InternalServerError)?;
 
     let result: Vec<OptionInfo> = options
         .iter()

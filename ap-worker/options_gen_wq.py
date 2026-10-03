@@ -26,6 +26,10 @@ from Options import (
     Toggle,
     Visibility,
 )
+# Item/location name lists for large worlds (e.g. tww3) can be tens of thousands of
+# entries. Shipping those in every options-gen response bloats the job payload past
+# practical limits and makes the web UI unusable, so omit valid_keys beyond this.
+MAX_VALID_KEYS = 500
 
 
 # TODO: Dedupe with self_check
@@ -182,7 +186,7 @@ class OptionsGenQueue(LobbyQueue):
                         option_def["choices"] = choices
                     if suggestions := get_suggestions(option_value):
                         option_def["suggestions"] = suggestions
-                    if valid_keys is not None:
+                    if valid_keys is not None and len(valid_keys) <= MAX_VALID_KEYS:
                         option_def["valid_keys"] = safe_json(valid_keys)
                     option_group_options[option_name] = option_def
                 if option_group_options:
