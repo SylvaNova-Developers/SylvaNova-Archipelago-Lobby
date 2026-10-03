@@ -7,12 +7,13 @@ import sys
 import zipfile
 import zipimport
 import json
+import importlib
 import importlib.abc
 import importlib.machinery
 import glob
 from pathlib import Path
 
-from apworld_peers import PEER_WORLD_EXCLUDED  # noqa: E402
+from apworld_peers import PEER_WORLD_EXCLUDED, discover_peer_world_imports  # noqa: E402
 
 ap_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, ap_path)
@@ -156,29 +157,74 @@ class ApHandler:
 
         return peer
 
+    def _unload_world_module(self, world_module):
+        prefix = f"worlds.{world_module}"
+        for name in list(sys.modules):
+            if name == prefix or name.startswith(f"{prefix}."):
+                del sys.modules[name]
+
+        try:
+            worlds.failed_world_loads.remove(world_module)
+        except ValueError:
+            pass
+
+    def _peer_needed_for_failed_load(self, dest_path, apworld_name, world_module):
+        """
+        WorldSource.load() logs import errors and returns False instead of raising.
+        Re-import the world module to recover the missing peer package name.
+        """
+        self._unload_world_module(world_module)
+        try:
+            importlib.import_module(f"worlds.{world_module}")
+            return None
+        except ModuleNotFoundError as error:
+            peer = self._peer_from_module_error(error)
+            if peer is not None:
+                return peer
+        except Exception:
+            pass
+
+        for peer in sorted(discover_peer_world_imports(dest_path, apworld_name)):
+            if f"worlds.{peer}" not in sys.modules:
+                return peer
+
+        return None
+
+    def _load_peer_for_world(self, apworld_name, peer):
+        if f"worlds.{peer}" in sys.modules:
+            return
+
+        peer_path, peer_version = self._find_bundled_apworld(peer)
+        if peer_path is None:
+            raise Exception(
+                f"Apworld '{apworld_name}' requires worlds.{peer}, but no apworld for "
+                f"'{peer}' was found under {self.apworlds_dir} or {self.custom_apworlds_dir}"
+            )
+
+        self.load_apworld(peer, peer_version)
+
     def _load_world_from_zip(self, dest_path, apworld_name, max_peer_loads=16):
         loads = 0
+        world_module = Path(dest_path).stem
         while True:
-            try:
-                WorldSource(dest_path, is_zip=True, relative=False).load()
+            loaded = WorldSource(dest_path, is_zip=True, relative=False).load()
+            if loaded:
                 return
-            except ModuleNotFoundError as error:
-                peer = self._peer_from_module_error(error)
-                if peer is None or loads >= max_peer_loads:
-                    raise
 
-                if f"worlds.{peer}" in sys.modules:
-                    raise
+            peer = self._peer_needed_for_failed_load(dest_path, apworld_name, world_module)
+            if peer is None:
+                if f"worlds.{world_module}" in sys.modules:
+                    return
+                raise Exception(f"Failed to load apworld '{apworld_name}'")
 
-                peer_path, peer_version = self._find_bundled_apworld(peer)
-                if peer_path is None:
-                    raise Exception(
-                        f"Apworld '{apworld_name}' requires worlds.{peer}, but no apworld for "
-                        f"'{peer}' was found under {self.apworlds_dir} or {self.custom_apworlds_dir}"
-                    ) from error
+            if loads >= max_peer_loads:
+                raise Exception(
+                    f"Failed to load apworld '{apworld_name}' after loading peer worlds"
+                )
 
-                loads += 1
-                self.load_apworld(peer, peer_version)
+            loads += 1
+            self._load_peer_for_world(apworld_name, peer)
+            self._unload_world_module(world_module)
 
     @tracer.start_as_current_span("load_apworld")
     def load_apworld(self, apworld_name, apworld_version):
