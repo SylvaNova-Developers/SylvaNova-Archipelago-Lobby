@@ -9,7 +9,10 @@ import zipimport
 import json
 import importlib.abc
 import importlib.machinery
+import glob
 from pathlib import Path
+
+from apworld_peers import PEER_WORLD_EXCLUDED  # noqa: E402
 
 ap_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, ap_path)
@@ -108,6 +111,75 @@ class ApHandler:
 
         return None, None
 
+    def _resolve_apworld_file(self, apworld_name, apworld_version):
+        custom_apworld_path = (
+            f"{self.custom_apworlds_dir}/{apworld_name}-{apworld_version}.apworld"
+        )
+        if os.path.isfile(custom_apworld_path):
+            return custom_apworld_path
+
+        supported_apworld_path = (
+            f"{self.apworlds_dir}/{apworld_name}-{apworld_version}.apworld"
+        )
+        if os.path.isfile(supported_apworld_path):
+            return supported_apworld_path
+
+        return None
+
+    def _find_bundled_apworld(self, apworld_name):
+        """
+        Locate a bundled apworld zip when only the world name is known (e.g. peer dependency).
+        """
+        for base_dir in (self.custom_apworlds_dir, self.apworlds_dir):
+            pattern = os.path.join(base_dir, f"{apworld_name}-*.apworld")
+            matches = sorted(glob.glob(pattern))
+            if not matches:
+                continue
+            path = matches[-1]
+            version = os.path.basename(path)[len(apworld_name) + 1 : -len(".apworld")]
+            return path, version
+
+        return None, None
+
+    def _peer_from_module_error(self, error):
+        name = getattr(error, "name", None)
+        if not name or not name.startswith("worlds."):
+            return None
+
+        parts = name.split(".")
+        if len(parts) < 2:
+            return None
+
+        peer = parts[1]
+        if peer in PEER_WORLD_EXCLUDED:
+            return None
+
+        return peer
+
+    def _load_world_from_zip(self, dest_path, apworld_name, max_peer_loads=16):
+        loads = 0
+        while True:
+            try:
+                WorldSource(dest_path, is_zip=True, relative=False).load()
+                return
+            except ModuleNotFoundError as error:
+                peer = self._peer_from_module_error(error)
+                if peer is None or loads >= max_peer_loads:
+                    raise
+
+                if f"worlds.{peer}" in sys.modules:
+                    raise
+
+                peer_path, peer_version = self._find_bundled_apworld(peer)
+                if peer_path is None:
+                    raise Exception(
+                        f"Apworld '{apworld_name}' requires worlds.{peer}, but no apworld for "
+                        f"'{peer}' was found under {self.apworlds_dir} or {self.custom_apworlds_dir}"
+                    ) from error
+
+                loads += 1
+                self.load_apworld(peer, peer_version)
+
     @tracer.start_as_current_span("load_apworld")
     def load_apworld(self, apworld_name, apworld_version):
         span = trace.get_current_span()
@@ -120,18 +192,18 @@ class ApHandler:
         if '/' in apworld_version:
             raise Exception("Invalid apworld version")
 
-        apworld_path = f"{self.custom_apworlds_dir}/{apworld_name}-{apworld_version}.apworld"
-        supported_apworld_path = f"{self.apworlds_dir}/{apworld_name}-{apworld_version}.apworld"
+        if f"worlds.{apworld_name}" in sys.modules:
+            return
+
+        source_apworld_path = self._resolve_apworld_file(apworld_name, apworld_version)
         dest_path = f"{self.tempdir}/{apworld_name}.apworld"
 
-        if os.path.isfile(apworld_path):
-            shutil.copy(apworld_path, dest_path)
-        elif os.path.isfile(supported_apworld_path):
-            shutil.copy(supported_apworld_path, dest_path)
-        else:
-            if "worlds." + apworld_name in sys.modules:
-                return
-            raise Exception("Invalid apworld: {}, version {}".format(apworld_name, apworld_version))
+        if source_apworld_path is None:
+            raise Exception(
+                "Invalid apworld: {}, version {}".format(apworld_name, apworld_version)
+            )
+
+        shutil.copy(source_apworld_path, dest_path)
 
         world_game, world_version = self.read_apworld_manifest(dest_path)
 
@@ -141,7 +213,7 @@ class ApHandler:
         spec = importer.find_spec(f"worlds.{world_name}")
         _dynamic_apworld_specs[f"worlds.{world_name}"] = spec
 
-        WorldSource(dest_path, is_zip=True, relative=False).load()
+        self._load_world_from_zip(dest_path, apworld_name)
 
         if world_game and world_game in AutoWorldRegister.world_types:
             if world_version:
