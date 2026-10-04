@@ -14,6 +14,7 @@ import glob
 from pathlib import Path
 
 from apworld_peers import PEER_WORLD_EXCLUDED, discover_peer_world_imports  # noqa: E402
+from rule_compat import patch_rule_builder_int_coercion  # noqa: E402
 
 ap_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, ap_path)
@@ -37,6 +38,9 @@ import settings  # noqa: E402
 
 # Headless workers must never open a file browser for required UserFolderPath settings.
 settings.no_gui = True
+
+# Community apworlds sometimes pass float item counts into rule_builder Has/HasGroup.
+patch_rule_builder_int_coercion()
 
 
 # Some **supported** apworlds try to get stuff from external APIs. We do not want that as it currently times out in prod
