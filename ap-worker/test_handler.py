@@ -10,6 +10,34 @@ ap_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, ap_path)
 
 import apworld_peers  # noqa: E402
+import rule_compat  # noqa: E402
+
+
+class RuleCompatTests(unittest.TestCase):
+    def test_patch_coerces_float_counts_to_int(self):
+        try:
+            from rule_builder import field_resolvers
+            from rule_builder import rules as rule_builder_rules
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"rule_builder unavailable: {exc}")
+
+        self.assertTrue(rule_compat.patch_rule_builder_int_coercion())
+        self.assertEqual(field_resolvers.resolve_field(3.7, object(), int), 3)
+        self.assertEqual(rule_builder_rules.resolve_field(9.0, object(), int), 9)
+        self.assertEqual(field_resolvers.resolve_field("ok", object(), str), "ok")
+        with self.assertRaises(AssertionError):
+            field_resolvers.resolve_field("nope", object(), int)
+
+    def test_patch_is_idempotent(self):
+        try:
+            from rule_builder import field_resolvers
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"rule_builder unavailable: {exc}")
+
+        self.assertTrue(rule_compat.patch_rule_builder_int_coercion())
+        first = field_resolvers.resolve_field
+        self.assertTrue(rule_compat.patch_rule_builder_int_coercion())
+        self.assertIs(field_resolvers.resolve_field, first)
 
 
 class DiscoverPeerWorldImportsTests(unittest.TestCase):
