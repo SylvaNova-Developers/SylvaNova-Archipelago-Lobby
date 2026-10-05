@@ -417,6 +417,63 @@ option
     font-size: 10px
 
 
+.mobile-topbar
+  display: none
+  align-items: center
+  gap: 0.5rem
+  flex: 0 0 3.25rem
+  height: 3.25rem
+  padding: 0 0.75rem
+  background: $color-surface
+  backdrop-filter: $blur-heavy
+  border-bottom: 1px solid $color-border
+  z-index: 120
+  position: sticky
+  top: 0
+
+.nav-toggle
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 44px
+  height: 44px
+  padding: 0
+  border: none
+  border-radius: $radius-sm
+  background: transparent
+  color: $color-text
+  cursor: pointer
+  font-size: 1.25rem
+
+  &:hover, &:focus-visible
+    background: rgba(106, 184, 114, 0.12)
+
+.mobile-brand
+  display: flex
+  align-items: center
+  gap: 0.4rem
+  font-family: $font-display
+  font-size: 1.25rem
+  font-weight: 600
+  color: $color-text
+  text-decoration: none
+
+.nav-backdrop
+  display: none
+  position: fixed
+  inset: 3.25rem 0 0 0
+  background: hsla(0, 0%, 0%, 0.45)
+  z-index: 110
+  opacity: 0
+  pointer-events: none
+  transition: opacity 0.2s ease
+
+.table-scroll
+  overflow-x: auto
+  max-width: 100%
+  -webkit-overflow-scrolling: touch
+
+
 /* == MAIN CONTAINER == */
 
 #main-container
@@ -543,17 +600,71 @@ h6
 
 @media screen and (max-width:768px)
   html, body
+    overflow-x: hidden
     overflow-y: visible
+    flex-direction: column
+
+  body.nav-open
+    overflow: hidden
+
+  .mobile-topbar
+    display: flex
+
+  .nav-backdrop
+    display: block
+
+  body.nav-open .nav-backdrop
+    opacity: 1
+    pointer-events: auto
+
   #navigation
-    max-width: 3em
-    min-width: 3em
-    flex: 0 0 3em
+    position: fixed
+    top: 3.25rem
+    left: 0
+    bottom: 0
+    z-index: 115
+    width: 85vw
+    max-width: 280px
+    min-width: 0
+    flex: none
+    height: auto
+    overflow-x: hidden
+    overflow-y: auto
+    transform: translateX(-100%)
+    transition: transform 0.2s ease
+    padding-bottom: 3em
+    box-shadow: none
+
+    a
+      min-height: 44px
+      padding: 10px 12px
+
+    .arrow
+      display: none
+
+  body.nav-open #navigation
+    transform: translateX(0)
+    box-shadow: $shadow-surface
 
   .brand-title
     display: none
 
-  #navigation span
-    display: none
+  #main-container
+    width: 100%
+    min-height: 0
+    height: auto
+    flex: 1 1 auto
+    padding: 0 0.75em
+
+  #main
+    width: 100%
+    max-width: 100%
+    min-width: 0
+
+  #module-menu
+    flex-wrap: wrap
+    margin: 0 -0.75em
+    padding: 0.5em 0.75em 0 0.75em
 
 #messages
   position: sticky
@@ -787,6 +898,12 @@ td:hover span[title]::after, .show-discord-names span[title]::after
 
 @media (max-width:768px)
   .yamls
+    td, th
+      white-space: normal
+
+    td:last-child, th:last-child
+      white-space: nowrap
+
     td
       &:first-child > span:has(> .player-name:not(:first-child))
         display: grid
@@ -816,6 +933,68 @@ td:hover span[title]::after, .show-discord-names span[title]::after
       .yaml-edited-indicator
         grid-column: -2/2
         text-align: center
+
+  td span[title]::after
+    content: " (" attr(title) ")"
+    font-size: 0.8em
+    padding-left: 0.35em
+    color: #bbb
+    word-break: break-word
+    align-content: center
+
+  .rooms-table
+    td, th
+      white-space: normal
+      &:last-child
+        width: auto
+
+  .apworlds-table
+    td
+      &:not(:first-child)
+        width: auto
+        word-break: break-word
+
+  #my-slots
+    td, th
+      white-space: normal
+      word-break: break-word
+
+  .help
+    width: 28px
+    height: 28px
+    font-size: 16px
+    line-height: 28px
+
+  #filter-trigger
+    padding: 0.55em
+    min-width: 44px
+    min-height: 44px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    box-sizing: border-box
+
+  #filter-popup
+    min-width: 16rem
+    max-width: calc(100vw - 2rem)
+    box-sizing: border-box
+
+  .context-menu li
+    padding: 12px 16px
+
+  .popup
+    min-width: 0
+    width: calc(100vw - 1.5rem)
+    max-width: 100%
+
+  .delete-popup
+    min-width: 0
+    width: calc(100vw - 1.5rem)
+    max-width: 100%
+    padding: 1.25em
+
+    .popup-content
+      max-width: 100%
 
 .bundle-separator
   border-top: 2px solid white
@@ -928,7 +1107,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
 
 @media (max-width:768px)
   #room-form
-    height: calc(100dvh - 5em)
+    height: calc(100dvh - 5em - 3.25rem)
 
 #option-pages
   overflow: auto
@@ -1032,7 +1211,7 @@ td:hover span[title]::after, .show-discord-names span[title]::after
 
 @media (max-width: 768px)
   #options-form
-    height: calc(100dvh - 5em)
+    height: calc(100dvh - 5em - 3.25rem)
 
     .options-submit
       border-bottom: none
@@ -1456,6 +1635,12 @@ form:has(#apworld)
   h3
     margin: 0 0 1em 0
     color: $color-text
+
+@media (max-width: 768px)
+  .modal-content
+    min-width: 0
+    width: calc(100vw - 2rem)
+    max-width: calc(100vw - 2rem)
 
 .weight-add-row
   display: flex

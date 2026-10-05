@@ -230,3 +230,7 @@
   .yaml-dropzone.drag-over {
     border-color: #6ab872;
     background-color: rgba(106, 184, 114, 0.12); }
+
+@media (max-width: 768px) {
+  .help-section {
+    padding: 1em; } }
