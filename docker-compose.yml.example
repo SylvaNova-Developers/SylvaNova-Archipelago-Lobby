@@ -32,7 +32,7 @@ services:
       - ./target:/builds/target
       - ./tmp/apworlds_index:/builds/apworlds_index
       - ./tmp/gen-output:/builds/gen-output
-    command: chown -R ${USER_ID}:${GID} /tmp/cargo /builds
+    command: chown -R ${USER_ID}:${GID} /tmp/cargo /builds/target /builds/apworlds_index /builds/gen-output
 
   lobby:
     tty: true

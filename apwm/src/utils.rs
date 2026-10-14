@@ -1,6 +1,20 @@
 use anyhow::Result;
 use git2::{FetchOptions, Repository, ResetType};
 use std::path::Path;
+use std::sync::Once;
+
+static DISABLE_GIT_OWNER_VALIDATION: Once = Once::new();
+
+/// Bind-mounted Docker volumes are often owned by a different uid than the process
+/// user. libgit2 refuses to open such repositories by default.
+pub fn disable_git_owner_validation() {
+    DISABLE_GIT_OWNER_VALIDATION.call_once(|| {
+        unsafe {
+            git2::opts::set_verify_owner_validation(false)
+                .expect("failed to disable git owner validation");
+        }
+    });
+}
 
 pub(crate) mod de {
     use std::collections::BTreeMap;
@@ -81,6 +95,8 @@ pub(crate) mod de {
 }
 
 pub fn git_clone_shallow(url: &str, git_ref: &str, path: &Path) -> Result<()> {
+    disable_git_owner_validation();
+
     let repo = Repository::init(path)?;
 
     let mut remote = repo.remote("origin", url)?;
