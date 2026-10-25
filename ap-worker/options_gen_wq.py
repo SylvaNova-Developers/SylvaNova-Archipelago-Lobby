@@ -26,6 +26,8 @@ from Options import (
     Toggle,
     Visibility,
 )
+from Utils import __version__ as ap_version
+
 # Item/location name lists for large worlds (e.g. tww3) can be tens of thousands of
 # entries. Shipping those in every options-gen response bloats the job payload past
 # practical limits and makes the web UI unusable, so omit valid_keys beyond this.
@@ -73,7 +75,7 @@ def safe_json(value):
     if isinstance(value, list):
         return [safe_json(v) for v in value]
     if isinstance(value, dict):
-        return {k: safe_json(v) for k, v in value.items()}
+        return {safe_json(k): safe_json(v) for k, v in value.items()}
     return value
 
 def get_default(option):
@@ -148,7 +150,7 @@ def get_valid_keys(option, world):
 
 class OptionsGenQueue(LobbyQueue):
     def __init__(self, ap_handler, root_url, worker_name, token, loop):
-        super().__init__(root_url, "options_gen", worker_name, token, loop)
+        super().__init__(root_url, "options_gen", worker_name, token, loop, ap_version)
         self.ap_handler = ap_handler
 
     def handle_job(self, job):
@@ -190,7 +192,10 @@ class OptionsGenQueue(LobbyQueue):
                         option_def["valid_keys"] = safe_json(valid_keys)
                     option_group_options[option_name] = option_def
                 if option_group_options:
-                    game_options[group] = option_group_options
+                    # Group names can be Enum members (e.g. a StrEnum) rather than plain
+                    # strings. Those can't be unpickled by the parent process when the
+                    # result comes back over the pipe, as it never loaded the apworld.
+                    game_options[safe_json(group)] = option_group_options
             result = {"options": game_options}
             status = JobStatus.Failure if 'error' in result else JobStatus.Success
             return status, result

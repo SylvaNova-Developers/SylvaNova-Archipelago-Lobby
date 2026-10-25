@@ -12,7 +12,8 @@ use crate::session::LoggedInSession;
 use crate::session::Session;
 use crate::utils::ZipFile;
 use crate::views::filters;
-use crate::{Context, TplContext};
+use crate::views::options_gen::base_query;
+use crate::{Context, LobbyConfig, TplContext};
 
 #[derive(Template, WebTemplate)]
 #[template(path = "room/apworlds.html")]
@@ -21,6 +22,8 @@ pub struct RoomApworldsTpl<'a> {
     is_my_room: bool,
     apworlds: Vec<(String, (World, Version))>,
     room: Room,
+    // Ends the links to the options pages, so that they are about the room's Archipelago version
+    options_query: String,
 }
 
 #[rocket::get("/room/<room_id>/worlds")]
@@ -31,6 +34,7 @@ pub async fn room_worlds<'a>(
     index_manager: &State<IndexManager>,
     redirect_to: &RedirectTo,
     ctx: &State<Context>,
+    lobby_config: &State<LobbyConfig>,
 ) -> Result<RoomApworldsTpl<'a>> {
     redirect_to.set(&format!("/room/{room_id}"));
 
@@ -38,7 +42,7 @@ pub async fn room_worlds<'a>(
     let room = db::get_room(room_id, &mut conn).await?;
     let is_my_room = session.is_admin || session.user_id == Some(room.settings.author_id);
 
-    let index = index_manager.index.read().await.clone();
+    let index = index_manager.index_for(&room.ap_version).await?.clone();
     let (apworlds, resolve_errors) = room.settings.manifest.resolve_with(&index);
     if !resolve_errors.is_empty() {
         Err(anyhow::anyhow!(
@@ -50,11 +54,21 @@ pub async fn room_worlds<'a>(
     let mut apworlds = Vec::from_iter(apworlds);
     apworlds.sort_by_key(|(_, (world, _))| world.display_name.to_lowercase());
 
+    let options_query = base_query(index_manager, &room.ap_version).await;
+
     Ok(RoomApworldsTpl {
-        base: TplContext::from_session("room", session, ctx).await,
+        base: TplContext::from_session(
+            "room",
+            session,
+            ctx,
+            lobby_config,
+            Some(format!("{} - Apworlds", room.settings.name)),
+        )
+        .await,
         is_my_room,
         apworlds,
         room,
+        options_query,
     })
 }
 
@@ -73,7 +87,7 @@ pub async fn room_download_all_worlds<'a>(
     let room = db::get_room(room_id, &mut conn).await?;
 
     Ok(index_manager
-        .download_apworlds(&room.settings.manifest)
+        .download_apworlds(&room.ap_version, &room.settings.manifest)
         .await?)
 }
 
