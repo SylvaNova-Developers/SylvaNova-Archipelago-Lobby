@@ -3,7 +3,7 @@
 <!DOCTYPE html >
 <html lang="en" data-theme="dark">
     <head>
-        <title>{% block title %}SylvaNova Lobby{% endblock title %}</title>
+        <title>{% block title %}{{ base.page_title }}{% endblock title %}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -42,11 +42,17 @@
                     {% call menu::app_menu_item("My rooms", "fa fa-list", "/rooms", "rooms", base.cur_module) %}{% endcall %}
                 {% endif %}
 
-                {% call menu::app_menu_item("Create new room", "fa fa-plus", "/create-room", "create-room", base.cur_module) %}{% endcall %}
+                {% if base.can_create_room() %}
+                    {% call menu::app_menu_item("Create new room", "fa fa-plus", "/create-room", "create-room", base.cur_module) %}{% endcall %}
+                {% endif %}
                 {% call menu::app_menu_item("Templates", "fa fa-code", "/room-templates", "room-templates", base.cur_module) %}{% endcall %}
                 {% block template_navigation %}
                 {% endblock %}
                 <span class="separator"></span>
+                {% if base.is_admin %}
+                    {% call menu::app_menu_item("Refresh Apworlds", "fa fa-globe", "/worlds/refresh", "refresh-apworlds", base.cur_module) %}{% endcall %}
+                    <span class="separator"></span>
+                {% endif %}
                 {% call menu::app_menu_item("Logout", "fa fa-sign-out", "/auth/logout", "logout", base.cur_module) %}{% endcall %}
             {% else %}
                 {% call menu::app_menu_item("Login", "fa fa-sign-in", "/auth/login", "login", base.cur_module) %}{% endcall %}

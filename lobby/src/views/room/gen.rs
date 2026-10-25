@@ -13,6 +13,7 @@ use crate::{
     index_manager::IndexManager,
     jobs::{GenerationOutDir, GenerationParams, GenerationQueue},
     session::LoggedInSession,
+    yaml::read_yaml,
 };
 use apwm::Index;
 use askama::Template;
@@ -32,7 +33,7 @@ use wq::{JobId, JobStatus};
 
 use crate::error::Result;
 use crate::utils::RenamedFile;
-use crate::{Context, TplContext};
+use crate::{Context, LobbyConfig, TplContext};
 
 #[derive(Template, WebTemplate)]
 #[template(path = "room/gen.html")]
@@ -45,11 +46,12 @@ struct GenRoomTpl<'a> {
 
 #[rocket::get("/room/<room_id>/generation")]
 #[tracing::instrument(skip(session, ctx))]
-async fn gen_room(
+async fn gen_room<'a>(
     room_id: RoomId,
     session: LoggedInSession,
-    ctx: &State<Context>,
-) -> Result<GenRoomTpl<'_>> {
+    ctx: &'a State<Context>,
+    lobby_config: &State<LobbyConfig>,
+) -> Result<GenRoomTpl<'a>> {
     let mut conn = ctx.db_pool.get().await?;
     let room = db::get_room(room_id, &mut conn).await?;
     let is_my_room = session.0.is_admin || session.user_id() == room.settings.author_id;
@@ -64,7 +66,14 @@ async fn gen_room(
     let current_gen = db::get_generation_for_room(room_id, &mut conn).await?;
 
     Ok(GenRoomTpl {
-        base: TplContext::from_session("room", session.0, ctx).await,
+        base: TplContext::from_session(
+            "room",
+            session.0,
+            ctx,
+            lobby_config,
+            Some(format!("{} - Generation", room.settings.name)),
+        )
+        .await,
         generation_checklist,
         room,
         current_gen,
@@ -172,7 +181,7 @@ async fn gen_room_start(
         }
     }
 
-    let index = index_manager.index.read().await.clone();
+    let index = index_manager.index_for(&room.ap_version).await?.clone();
     enqueue_gen_job(&room, yamls, gen_queue, &index, &mut conn).await?;
 
     Ok(Redirect::to(rocket::uri!(gen_room(room_id))))
@@ -381,7 +390,7 @@ async fn enqueue_gen_job(
     let required_worlds = yamls
         .iter()
         .map(|yaml| {
-            let Ok(parsed) = serde_saphyr::from_str::<YamlFile>(&yaml.current_content()) else {
+            let Ok(parsed) = read_yaml::<YamlFile>(&yaml.current_content()) else {
                 Err(anyhow::anyhow!(
                     "Internal error, unable to reparse a YAML that was already parsed before"
                 ))?
@@ -420,6 +429,7 @@ async fn enqueue_gen_job(
         meta_file: room.settings.meta_file.clone(),
         room_id: room.id,
         otlp_context: HashMap::new(),
+        ap_version: Some(room.ap_version.0.clone()),
     };
 
     let cx = tracing::Span::current().context();
@@ -428,7 +438,8 @@ async fn enqueue_gen_job(
     });
 
     let job_id = gen_queue
-        .enqueue_job(
+        .enqueue_job_in(
+            Some(&room.ap_version.to_string()),
             &params,
             wq::Priority::Normal,
             Duration::from_secs(60 * 60 * 6),

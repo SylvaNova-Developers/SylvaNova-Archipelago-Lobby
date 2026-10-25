@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::db::{self, Room, RoomFilter};
 use crate::error::Result;
 use crate::session::Session;
-use crate::{Context, TplContext};
+use crate::{Context, LobbyConfig, TplContext};
 use askama::Template;
 use askama_web::WebTemplate;
 use diesel::IntoSql;
@@ -99,9 +99,10 @@ async fn root<'a>(
     page: Option<u64>,
     session: Session,
     ctx: &'a State<Context>,
+    lobby_config: &State<LobbyConfig>,
 ) -> Result<Index<'a>> {
     if !session.is_logged_in {
-        return Ok(Index::Help(help(session, ctx).await?));
+        return Ok(Index::Help(help(session, ctx, lobby_config).await?));
     }
 
     let mut conn = ctx.db_pool.get().await?;
@@ -118,11 +119,11 @@ async fn root<'a>(
     };
 
     if rooms.is_empty() && current_page != 1 {
-        return Box::pin(root(None, session, ctx)).await;
+        return Box::pin(root(None, session, ctx, lobby_config)).await;
     }
 
     Ok(Index::RoomList(IndexTpl {
-        base: TplContext::from_session("index", session, ctx).await,
+        base: TplContext::from_session("index", session, ctx, lobby_config, None).await,
         rooms,
         current_page,
         max_pages,
@@ -131,15 +132,38 @@ async fn root<'a>(
 
 #[get("/help")]
 #[tracing::instrument(skip_all)]
-async fn help<'a>(session: Session, ctx: &'a State<Context>) -> Result<HelpTpl<'a>> {
+async fn help<'a>(
+    session: Session,
+    ctx: &'a State<Context>,
+    lobby_config: &State<LobbyConfig>,
+) -> Result<HelpTpl<'a>> {
     Ok(HelpTpl {
-        base: TplContext::from_session("index", session, ctx).await,
+        base: TplContext::from_session(
+            "index",
+            session,
+            ctx,
+            lobby_config,
+            Some("Help".to_string()),
+        )
+        .await,
     })
 }
+
+// `STYLESHEETS`, each one's file name and CSS. They are compiled from `static/sass` when the
+// lobby is built, see `build.rs`, and exist nowhere in the repository.
+include!(concat!(env!("OUT_DIR"), "/stylesheets.rs"));
 
 #[get("/static/<file..>")]
 #[tracing::instrument]
 fn dist(file: PathBuf) -> Option<(ContentType, Cow<'static, [u8]>)> {
+    if let Ok(stylesheet) = file.strip_prefix("css") {
+        let (_, css) = STYLESHEETS
+            .iter()
+            .find(|(name, _)| stylesheet == Path::new(name))?;
+
+        return Some((ContentType::CSS, Cow::Borrowed(css.as_bytes())));
+    }
+
     let filename = file.display().to_string();
     let asset = Asset::get(&filename)?;
     let content_type = file

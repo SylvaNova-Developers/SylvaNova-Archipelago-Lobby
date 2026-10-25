@@ -11,8 +11,9 @@ use crate::session::{LoggedInSession, Session};
 use crate::utils::{NamedBuf, ZipFile};
 use crate::views::api;
 use crate::views::filters;
+use crate::views::utils::{base_chip, BaseChip};
 use crate::yaml::{compute_ap_slot_names, YamlValidationResult};
-use crate::{Context, TplContext};
+use crate::{Context, LobbyConfig, TplContext};
 use askama::Template;
 use askama_web::WebTemplate;
 use diesel_async::scoped_futures::ScopedFutureExt;
@@ -44,6 +45,7 @@ pub struct RoomTpl<'a> {
     game_display_names: HashMap<String, String>,
     // Map from original player name to AP truncated slot name
     truncated_names: HashMap<String, String>,
+    base_chip: BaseChip,
 }
 
 impl RoomTpl<'_> {
@@ -69,13 +71,14 @@ pub async fn room<'a>(
     ctx: &State<Context>,
     session: Session,
     index_manager: &State<IndexManager>,
+    lobby_config: &State<LobbyConfig>,
 ) -> Result<RoomTpl<'a>> {
     let mut conn = ctx.db_pool.get().await?;
     let (room, author_name, room_info) = db::get_room_and_author(room_id, &mut conn).await?;
     let mut yamls = db::get_yamls_for_room_with_author_names(room_id, &mut conn).await?;
 
     let game_display_names = {
-        let index = index_manager.index.read().await;
+        let index = index_manager.index_for(&room.ap_version).await?;
         yamls
             .iter()
             .map(|(yaml, _)| &yaml.game)
@@ -101,6 +104,8 @@ pub async fn room<'a>(
         .unique_by(|yaml| &yaml.0.game)
         .count();
 
+    let base_chip = base_chip(&room.ap_version, &index_manager.default_base().await);
+
     let is_my_room = session.is_admin || session.user_id == Some(room.settings.author_id);
     let user_has_yaml = yamls
         .iter()
@@ -118,7 +123,14 @@ pub async fn room<'a>(
     };
 
     Ok(RoomTpl {
-        base: TplContext::from_session("room", session, ctx).await,
+        base: TplContext::from_session(
+            "room",
+            session,
+            ctx,
+            lobby_config,
+            Some(room.settings.name.clone()),
+        )
+        .await,
         player_count: yamls.len(),
         unique_player_count,
         unique_game_count,
@@ -132,6 +144,7 @@ pub async fn room<'a>(
         current_user_has_yaml_in_room: user_has_yaml,
         game_display_names,
         truncated_names,
+        base_chip,
     })
 }
 

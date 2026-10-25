@@ -27,7 +27,7 @@ use rocket_oauth2::OAuth2;
 use rocket_prometheus::PrometheusMetrics;
 use wq::rocket_routes::QueueTokens;
 
-use crate::index_manager::IndexManager;
+use crate::index_manager::{BaseConfig, IndexManager, IndexSource};
 use crate::jobs::{
     get_generation_callback, get_options_gen_callback, get_yaml_validation_callback,
     GenerationOutDir, GenerationQueue, OptionsGenQueue, YamlValidationQueue,
@@ -36,6 +36,7 @@ use views::options_gen::{OptionsCache, OptionsPreloadFairing};
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations/");
 
+pub mod base_switch;
 pub mod config;
 pub mod db;
 pub mod error;
@@ -47,6 +48,8 @@ pub mod jobs;
 pub mod otlp;
 pub mod schema;
 pub mod session;
+#[cfg(test)]
+pub(crate) mod test_utils;
 pub mod utils;
 pub mod views;
 pub mod yaml;
@@ -58,6 +61,11 @@ pub struct Context {
     redis_pool: RedisPool,
 }
 
+#[derive(Debug, Clone)]
+pub struct LobbyConfig {
+    admin_rooms_only: bool,
+}
+
 const CSS_VERSION: &str = std::env!("CSS_VERSION");
 const JS_VERSION: &str = std::env!("JS_VERSION");
 
@@ -65,16 +73,24 @@ const JS_VERSION: &str = std::env!("JS_VERSION");
 pub struct TplContext<'a> {
     is_admin: bool,
     is_logged_in: bool,
+    admin_rooms_only: bool,
     cur_module: &'a str,
     user_id: Option<i64>,
     err_msg: Vec<String>,
     warning_msg: Vec<String>,
     css_version: &'a str,
     js_version: &'a str,
+    page_title: String,
 }
 
 impl<'a> TplContext<'a> {
-    pub async fn from_session(module: &'a str, session: Session, ctx: &Context) -> Self {
+    pub async fn from_session(
+        module: &'a str,
+        session: Session,
+        ctx: &Context,
+        lobby_config: &LobbyConfig,
+        page_title: Option<String>,
+    ) -> Self {
         Self {
             cur_module: module,
             is_admin: session.is_admin,
@@ -84,7 +100,17 @@ impl<'a> TplContext<'a> {
             warning_msg: session.retrieve_warnings(ctx).await.unwrap(),
             css_version: CSS_VERSION,
             js_version: JS_VERSION,
+            admin_rooms_only: lobby_config.admin_rooms_only,
+            page_title: page_title.map_or_else(
+                || "SylvaNova Lobby".to_string(),
+                |name| format!("SylvaNova Lobby - {}", name),
+            ),
         }
+    }
+
+    /// Whether this session may reach the room creation form.
+    pub fn can_create_room(&self) -> bool {
+        !self.admin_rooms_only || self.is_admin
     }
 }
 
@@ -150,6 +176,37 @@ impl Handler for MetricsRoute {
 impl From<MetricsRoute> for Vec<Route> {
     fn from(val: MetricsRoute) -> Self {
         vec![Route::new(Method::Get, "/", val)]
+    }
+}
+
+/// Reads a boolean config option from the environment, falling back to `default`
+/// when it is unset or empty.
+fn env_bool(name: &str, default: bool) -> bool {
+    let value = match std::env::var(name) {
+        Err(std::env::VarError::NotPresent) => return default,
+        Err(std::env::VarError::NotUnicode(_)) => {
+            panic!("{name} must be valid UTF-8, got a value that is not")
+        }
+        Ok(value) => value,
+    };
+
+    parse_bool(name, &value, default)
+}
+
+/// The value half of [`env_bool`], split out so it is testable without mutating
+/// process-wide environment state.
+fn parse_bool(name: &str, value: &str, default: bool) -> bool {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "" => default,
+        "true" | "1" | "yes" | "on" => true,
+        "false" | "0" | "no" | "off" => false,
+        other => panic!("{name} must be a boolean (true/false/1/0/yes/no/on/off), got {other:?}"),
+    }
+}
+
+fn get_lobby_config() -> LobbyConfig {
+    LobbyConfig {
+        admin_rooms_only: env_bool("ADMIN_ROOMS_ONLY", false),
     }
 }
 
@@ -219,12 +276,29 @@ pub async fn main() -> crate::error::Result<()> {
         .register(Box::new(common::db::QUERY_HISTOGRAM.clone()))
         .expect("Failed to register query histogram");
 
-    let index_manager = IndexManager::new()?;
+    let index_manager = IndexManager::new(
+        IndexSource::from_env(),
+        BaseConfig::from_env()?,
+        redis_pool.clone(),
+        &valkey_url,
+    )?;
     if std::env::var("SKIP_APWORLDS_UPDATE").is_err() {
         index_manager.update().await?;
     }
+    // Every lobby process has its own copy of the index. From here on this one stays on the
+    // same commit of it as the others.
+    index_manager.join_other_processes().await?;
+    index_manager.start_following();
+
+    // A worker names the Archipelago version it runs when it asks for a job, and only gets the
+    // jobs of that partition. A job is enqueued in the partition of the room's version. The
+    // index's own version is the default partition: it keeps the keys the queues always had,
+    // so the jobs that are in flight during an upgrade, and the workers that name no version,
+    // carry on as before.
+    let legacy_base = index_manager.legacy_base().await.to_string();
 
     let yaml_validation_queue = YamlValidationQueue::builder("yaml_validation")
+        .with_default_partition(&legacy_base)
         .with_callback(get_yaml_validation_callback(db_pool.clone()))
         .with_reclaim_timeout(Duration::from_secs(10))
         .build(&valkey_url)
@@ -233,6 +307,7 @@ pub async fn main() -> crate::error::Result<()> {
     yaml_validation_queue.start_reclaim_checker();
 
     let generation_queue = GenerationQueue::builder("generation_queue")
+        .with_default_partition(&legacy_base)
         .with_callback(get_generation_callback(
             db_pool.clone(),
             generation_out_dir.0.clone(),
@@ -243,9 +318,12 @@ pub async fn main() -> crate::error::Result<()> {
         .expect("Failed to create job queue for generation");
     generation_queue.start_reclaim_checker();
 
-    let options_cache: OptionsCache = std::sync::Arc::new(tokio::sync::RwLock::new(HashMap::new()));
+    let lobby_config = get_lobby_config();
+
+    let options_cache = OptionsCache::new(redis_pool.clone(), index_manager.legacy_base().await);
 
     let options_gen_queue = OptionsGenQueue::builder("options_gen")
+        .with_default_partition(&legacy_base)
         .with_callback(get_options_gen_callback(options_cache.clone()))
         .with_reclaim_timeout(Duration::from_secs(10))
         .build(&valkey_url)
@@ -300,6 +378,7 @@ pub async fn main() -> crate::error::Result<()> {
         .manage(options_gen_queue)
         .manage(options_cache)
         .manage(queue_tokens)
+        .manage(lobby_config)
         .attach(OAuth2::<Discord>::fairing("discord"))
         .attach(OptionsPreloadFairing)
         .launch()
@@ -307,4 +386,34 @@ pub async fn main() -> crate::error::Result<()> {
         .unwrap();
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_bool;
+
+    #[test]
+    fn parses_the_documented_spellings() {
+        for value in ["true", "TRUE", "True", "1", "yes", "on", " true "] {
+            assert!(parse_bool("TEST", value, false), "{value:?} should be true");
+        }
+        for value in ["false", "FALSE", "0", "no", "off", " false "] {
+            assert!(
+                !parse_bool("TEST", value, true),
+                "{value:?} should be false"
+            );
+        }
+    }
+
+    #[test]
+    fn empty_falls_back_to_the_default() {
+        assert!(parse_bool("TEST", "", true));
+        assert!(!parse_bool("TEST", "  ", false));
+    }
+
+    #[test]
+    #[should_panic(expected = "TEST must be a boolean")]
+    fn an_unrecognized_value_aborts_rather_than_defaulting() {
+        parse_bool("TEST", "ture", false);
+    }
 }
